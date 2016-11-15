@@ -1,0 +1,1 @@
+cl shell.c sqlite3.c -Fesqlite3.exe
