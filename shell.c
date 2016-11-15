@@ -836,14 +836,20 @@ static void output_json_string(FILE *out, const char *z){
   if( z==0 ) z = "";
   while( *z ){
     for(i=0;   z[i]
-            && z[i]!='\"';            
+            && z[i]!='\"'
+            && z[i]!='\n'
+            && z[i]!='\r';            
         i++){}
     if( i>0 ){
       utf8_printf(out,"%.*s",i,z);
     }
   if( z[i]=='\"' ){
       raw_printf(out,"\\\"");
-    }else{
+    }else if( z[i]=='\n'){
+      raw_printf(out,"\\n");
+    }else if( z[i]=='\r'){
+      raw_printf(out,"\\r");
+    } else {
       break;
     }
     z += i + 1;
@@ -1202,6 +1208,8 @@ static int shell_callback(
             raw_printf(p->out,"\"");
         }        
         raw_printf(p->out,"],\"values\":[");
+      } else {
+        raw_printf(p->out,"{\"values\":[");
       }
       if( azArg==0 ) break;
       raw_printf(p->out,"[");
@@ -1865,7 +1873,7 @@ static void exec_prepared_stmt(
         char **azCols = (char **)pData;      /* Names of result columns */
         char **azVals = &azCols[nCol];       /* Results */
         int *aiTypes = (int *)&azVals[nCol]; /* Result types */
-        int i, x;
+        int i, x, index;
         assert(sizeof(int) <= sizeof(char *));
         /* save off ptrs to column names */
         for(i=0; i<nCol; i++){
@@ -1875,6 +1883,7 @@ static void exec_prepared_stmt(
         ShellState *p = (ShellState*)pArg;     
         if(p->cMode == MODE_JSON1 && p->cnt==0 && p->showHeader ){
             raw_printf(p->out,"{\"columns\":");
+            index=0;
         }        
         do{
           /* extract the data and data types */
@@ -1894,14 +1903,14 @@ static void exec_prepared_stmt(
           /* if data and types extracted successfully... */
           if( SQLITE_ROW == rc ){
             /* call the supplied callback with the result row data */
+              /* json requires some processing */
+              p = (ShellState*)pArg;
+              if( p->cMode == MODE_JSON1 && index++ >1){
+                raw_printf(p->out,",");                
+              }           
             if( xCallback(pArg, nCol, azVals, azCols, aiTypes) ){
               rc = SQLITE_ABORT;
             }else{
-              /* json requires some processing */
-              p = (ShellState*)pArg;
-              if( p->cMode == MODE_JSON1 ){
-                raw_printf(p->out,",");                
-              }           
               rc = sqlite3_step(pStmt);
             }
           }
@@ -1909,7 +1918,7 @@ static void exec_prepared_stmt(
         /* json requires some processing */
         p = (ShellState*)pArg;        
         if( p->cMode == MODE_JSON1 ){
-                raw_printf(p->out,"[]]}");                
+                raw_printf(p->out,"]}");                
         }           
         sqlite3_free(pData);
       }
