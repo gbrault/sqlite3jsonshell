@@ -1,6 +1,7 @@
 # sqlite3jsonshell
 provide json output to reworked sqlite shell
 
+## Usage
 added one more mode:
 
 ```
@@ -31,3 +32,7 @@ sqlite>
 ```
 
 It is ready to be read by JSON.parse!
+
+## How to compile
+
+see directive on sqlite.org to compile shell [here]:(http://sqlite.org/howtocompile.html#compiling_the_command_line_interface)
