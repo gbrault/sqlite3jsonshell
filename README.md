@@ -35,4 +35,4 @@ It is ready to be read by JSON.parse!
 
 ## How to compile
 
-see directive on sqlite.org to compile shell [here]:(http://sqlite.org/howtocompile.html#compiling_the_command_line_interface)
+see directive on sqlite.org to compile shell [here](http://sqlite.org/howtocompile.html#compiling_the_command_line_interface)
